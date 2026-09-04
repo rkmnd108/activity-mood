@@ -1,0 +1,22 @@
+:root { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Yu Gothic UI", Meiryo, sans-serif; color: #263238; background: #eef1f3; font-size: 16px; line-height: 1.6; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+.print-controls { max-width: 760px; padding: 24px; margin: auto; }
+.print-controls h1 { font-size: 1.3rem; }
+.print-controls p { margin: 10px 0; }
+.print-controls a { color: #365d73; display: inline-block; padding: 10px 0; }
+button { font: inherit; min-height: 48px; padding: 10px 20px; border: 1px solid #405563; border-radius: 8px; background: #405563; color: #fff; cursor: pointer; }
+button:disabled { opacity: .6; cursor: wait; }
+button:focus-visible, a:focus-visible { outline: 3px solid #366b8a; outline-offset: 4px; }
+.print-sheet { width: 287mm; height: 200mm; margin: 20px auto; background: white; }
+.print-sheet > svg { display: block; width: 100%; height: 100%; font-family: inherit; }
+#print-pages { overflow-x: auto; padding: 0 16px 24px; }
+@page { size: A4 landscape; margin: 5mm; }
+@media print {
+  :root, body { margin: 0; background: white; }
+  .print-controls, noscript { display: none !important; }
+  #print-pages { overflow: visible; padding: 0; }
+  .print-sheet { margin: 0; break-after: page; page-break-after: always; break-inside: avoid; page-break-inside: avoid; }
+  .print-sheet:last-child { break-after: auto; page-break-after: auto; }
+  * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+}

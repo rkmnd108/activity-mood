@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>行動・気分記録 PDF</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./styles/print.css">
+  <script src="./scripts/date-time.js" defer></script>
+  <script src="./scripts/db.js" defer></script>
+  <script src="./scripts/week.js" defer></script>
+  <script src="./scripts/print.js" defer></script>
+</head>
+<body data-print-app>
+  <div class="print-controls">
+    <a href="./index.html">記録画面に戻る</a>
+    <h1>PDFのプレビュー</h1>
+    <p>A4・横向き・倍率100%・ヘッダーとフッターなしで印刷してください。保存先でPDFを選びます。</p>
+    <p>日本語は端末のフォントを使用します。保存・共有の操作はブラウザ／OSによって異なります。</p>
+    <button id="print-action" type="button" disabled>印刷・PDFに保存</button>
+    <p id="print-status" role="status">記録を読み込んでいます。</p>
+  </div>
+  <div id="print-pages"></div>
+  <noscript>JavaScriptを有効にしてください。</noscript>
+</body>
+</html>

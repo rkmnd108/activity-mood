@@ -1,0 +1,31 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Phase 6 専用テスト</title><link rel="stylesheet" href="../styles/main.css"><body><main><h1>Phase 6 専用テスト</h1><p>毎回新しい専用DBを作成し、架空データだけで検証します。</p><p id="result">実行中</p><ol id="checks"></ol>        <div class="output-card" id="backup-panel">
+          <h3>バックアップ・復元</h3>
+          <p class="muted">進行中を含む全記録をJSONファイルに保存できます。</p>
+          <fieldset id="backup-controls">
+            <legend class="backup-legend">JSONバックアップ</legend>
+            <button id="backup-export" class="secondary-button" type="button">バックアップを準備</button>
+            <a id="backup-download" class="primary-button print-link" hidden>JSONファイルを保存</a>
+            <p class="field-help">保存リンクを押した後、端末にファイルが保存されたことを確認してください。</p>
+            <label for="backup-file">復元するJSONファイル</label>
+            <input id="backup-file" type="file" accept=".json,application/json">
+            <label for="backup-mode">復元方法</label>
+            <select id="backup-mode"><option value="append">現在のデータに追加</option><option value="replace">現在のデータを置き換える</option></select>
+            <p class="field-help">追加では同じIDの記録をスキップします。別のIDで時間が重なる記録は、そのまま追加されます。</p>
+            <button id="backup-review" class="secondary-button" type="button">復元内容を確認</button>
+            <details class="backup-delete"><summary>全記録の削除</summary>
+              <p>このブラウザの全記録を削除します。先にバックアップを保存してください。</p>
+              <button id="backup-clear" class="danger-button" type="button">全記録削除の確認へ</button>
+            </details>
+          </fieldset>
+          <p id="backup-status" role="status" class="input-feedback"></p>
+          <dialog id="backup-dialog" aria-labelledby="backup-dialog-title" aria-describedby="backup-summary">
+            <h3 id="backup-dialog-title" tabindex="-1"></h3>
+            <p id="backup-summary"></p>
+            <p id="backup-warning"></p>
+            <a id="backup-before-download" class="secondary-button" hidden>処理前のJSONを保存</a>
+            <details id="backup-details"><summary>読み込んだ記録を見る</summary><ul id="backup-records"></ul></details>
+            <p id="backup-final-note" hidden>最終確認です。この操作はアプリ上で元に戻せません。処理前のバックアップを保存したか確認してください。</p>
+            <div class="backup-actions"><button id="backup-cancel" class="secondary-button" type="button">キャンセル</button><button id="backup-confirm" class="primary-button" type="button">追加する</button></div>
+          </dialog>
+        </div>
+</main><script src="../scripts/date-time.js"></script><script src="../scripts/db.js"></script><script src="../scripts/backup.js"></script><script src="phase6.js"></script></body></html>

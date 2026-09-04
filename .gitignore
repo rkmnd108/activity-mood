@@ -1,0 +1,16 @@
+# 個人データ・バックアップ・受け入れテストの出力
+*.pdf
+*.zip
+*.json
+tmp/
+downloads/
+
+# 秘密情報
+.env
+.env.*
+!.env.example
+
+# 依存関係・OSのファイル
+node_modules/
+Thumbs.db
+.DS_Store
