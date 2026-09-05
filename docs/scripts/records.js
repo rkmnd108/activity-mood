@@ -15,6 +15,9 @@
   const mood = document.getElementById("mood");
   const moodValue = document.getElementById("mood-value");
   const feedback = document.getElementById("input-feedback");
+  let keyboardNavigation = false;
+  document.addEventListener("keydown", () => { keyboardNavigation = true; }, true);
+  document.addEventListener("pointerdown", () => { keyboardNavigation = false; }, true);
   let mode = null;
   let pastInitialized = false;
   let editing = null;
@@ -39,6 +42,20 @@
     if (mode !== "now" || editing) return;
     const current = currentJapanTime();
     document.getElementById("now-start").textContent = `${current.date.replaceAll("-", "/")}　${current.time}`;
+  }
+
+  function roundDownToTenMinutes(time) {
+    const [hours, minutes] = time.split(":").map(Number);
+    return `${String(hours).padStart(2, "0")}:${String(Math.floor(minutes / 10) * 10).padStart(2, "0")}`;
+  }
+
+  function setEndOneHourAfterStart() {
+    if (!dateInput.value || !startInput.value) return;
+    const [hours, minutes] = startInput.value.split(":").map(Number);
+    const endMinutes = hours * 60 + minutes + 60;
+    endDateManual = false;
+    endDateInput.value = endMinutes >= 24 * 60 ? ActivityTime.nextDay(dateInput.value) : dateInput.value;
+    endInput.value = `${String(Math.floor((endMinutes % (24 * 60)) / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
   }
 
   // 固定の線画のみ。ユーザーの入力値をHTMLとして埋め込みません。
@@ -99,13 +116,15 @@
       endFields.hidden = endFields.disabled = false;
       if (mode === "past" && !pastInitialized) {
         const current = currentJapanTime();
+        const roundedTime = roundDownToTenMinutes(current.time);
         dateInput.value = current.date;
-        startInput.value = endInput.value = current.time;
+        startInput.value = endInput.value = roundedTime;
         endDateInput.value = current.date;
         pastInitialized = true;
       }
       updateStartPreview();
       feedback.textContent = "";
+      heading.toggleAttribute("data-auto-focus", !keyboardNavigation);
       heading.focus({ preventScroll: true });
       heading.scrollIntoView({ block: "start" });
     });
@@ -161,7 +180,9 @@
     try { endDateInput.value = endInput.value && startInput.value && endInput.value < startInput.value ? ActivityTime.nextDay(dateInput.value) : dateInput.value; }
     catch { /* 不完全な日付入力は、保存時に検証する。 */ }
   }
-  [dateInput, startInput, endInput].forEach((input) => input.addEventListener("input", syncEndDate));
+  dateInput.addEventListener("input", syncEndDate);
+  startInput.addEventListener("input", setEndOneHourAfterStart);
+  endInput.addEventListener("input", syncEndDate);
   endDateInput.addEventListener("input", () => { endDateManual = true; });
   finishEdit.addEventListener("change", () => {
     endFields.hidden = endFields.disabled = !finishEdit.checked;

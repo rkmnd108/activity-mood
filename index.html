@@ -37,8 +37,7 @@
           <button class="record-option" type="button" data-record-mode="now" aria-pressed="false" aria-controls="record-form"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4Z"/></svg><span>今から開始</span><small>これから行うこと</small></button>
           <button class="record-option" type="button" data-record-mode="past" aria-pressed="false" aria-controls="record-form"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 7v10M7 12h10"/></svg><span>あとから記録</span><small>終わったこと</small></button>
         </div>
-        <p class="phase-note" id="storage-note">記録はこのブラウザ内に保存されます。入力途中の内容は、再読み込みすると消えます。</p>
-        <form id="record-form" aria-describedby="storage-note" hidden>
+        <form id="record-form" hidden>
           <h3 id="form-heading" tabindex="-1"></h3>
           <fieldset id="now-fields" class="time-fields" disabled hidden>
             <legend>開始日時（日本時間）</legend>
@@ -46,22 +45,18 @@
             <p class="muted">現在時刻を自動入力。終了時刻は設定しません。</p>
           </fieldset>
           <fieldset id="past-fields" class="time-fields" disabled hidden>
-            <legend>いつの記録ですか？</legend>
-            <label for="record-date">開始日</label>
-            <input id="record-date" name="date" type="date" required aria-describedby="date-help">
-            <p id="date-help" class="field-help">実際のカレンダーの日付を選んでください。</p>
-            <div class="time-row">
-              <div><label for="start-time">開始時刻</label><input id="start-time" name="startTime" type="time" step="60" required></div>
+            <div class="date-time-row">
+              <div><label for="record-date">開始日</label><input id="record-date" name="date" type="date" required></div>
+              <div><label for="start-time">開始時刻</label><input id="start-time" name="startTime" type="time" step="600" required></div>
             </div>
             <label id="finish-edit-option" class="finish-option" hidden><input id="finish-edit" type="checkbox"> この記録を終了済みにする</label>
             <fieldset id="end-fields">
-              <div class="time-row">
+              <div class="date-time-row">
                 <div><label for="end-date">終了日</label><input id="end-date" name="endDate" type="date" required></div>
-                <div><label for="end-time">終了時刻</label><input id="end-time" name="endTime" type="time" step="60" required></div>
+                <div><label for="end-time">終了時刻</label><input id="end-time" name="endTime" type="time" step="600" required></div>
               </div>
-              <p class="field-help">終了時刻が開始より前なら、終了日は翌日を初期設定します。終了日は手動で変更できます。</p>
+              <p class="field-help date-time-help">終了時刻が開始より前の場合は翌日として扱います。</p>
             </fieldset>
-            <p class="field-help">日時は日本時間です。</p>
           </fieldset>
           <fieldset class="input-section">
             <legend>やったこと <span class="field-help">1つ選択・必須</span></legend>
