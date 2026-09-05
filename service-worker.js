@@ -1,7 +1,7 @@
 "use strict";
 
 // アプリのファイルを変更したときは、この版も上げる。
-const VERSION = "v8";
+const VERSION = "v9";
 const BASE = self.registration.scope;
 const PREFIX = `activity-mood-shell:${BASE}:`;
 const CACHE = PREFIX + VERSION;

@@ -33,6 +33,14 @@
   const cancelButton = document.getElementById("cancel-edit");
   const deleteButton = document.getElementById("delete-record");
   const message = document.getElementById("record-message");
+  const startTimeButton = document.getElementById("start-time-picker");
+  const endTimeButton = document.getElementById("end-time-picker");
+  const timePickerDialog = document.getElementById("time-picker-dialog");
+  const pickerHours = document.getElementById("picker-hours");
+  const pickerMinutes = document.getElementById("picker-minutes");
+  const timePickerTitle = document.getElementById("time-picker-title");
+  const pickerMinutesList = ["00", "10", "20", "30", "40", "50"];
+  const pickerState = { target: null, hour: "00", minute: "00", trigger: null };
 
   function currentJapanTime() {
     return ActivityTime.now();
@@ -49,13 +57,122 @@
     return `${String(hours).padStart(2, "0")}:${String(Math.floor(minutes / 10) * 10).padStart(2, "0")}`;
   }
 
+  function timeParts(time) {
+    const [hour = "00", minute = "00"] = time.split(":");
+    return { hour, minute };
+  }
+
+  function setTimeValue(input, trigger, time) {
+    input.value = time;
+    trigger.textContent = time;
+  }
+
   function setEndOneHourAfterStart() {
     if (!dateInput.value || !startInput.value) return;
     const [hours, minutes] = startInput.value.split(":").map(Number);
     const endMinutes = hours * 60 + minutes + 60;
     endDateManual = false;
     endDateInput.value = endMinutes >= 24 * 60 ? ActivityTime.nextDay(dateInput.value) : dateInput.value;
-    endInput.value = `${String(Math.floor((endMinutes % (24 * 60)) / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`;
+    setTimeValue(endInput, endTimeButton, `${String(Math.floor((endMinutes % (24 * 60)) / 60)).padStart(2, "0")}:${String(endMinutes % 60).padStart(2, "0")}`);
+  }
+
+  function renderPickerOptions() {
+    const render = (container, values, type) => {
+      container.replaceChildren(...values.map((value) => {
+        const option = document.createElement("button");
+        option.type = "button";
+        option.className = "time-picker-option";
+        option.dataset.value = value;
+        option.setAttribute("role", "option");
+        option.addEventListener("click", () => setPickerSelection(type, value, true));
+        return option;
+      }));
+    };
+    render(pickerHours, Array.from({ length: 24 }, (_, index) => String(index).padStart(2, "0")), "hour");
+    render(pickerMinutes, pickerMinutesList, "minute");
+  }
+
+  function setPickerSelection(type, value, scroll) {
+    pickerState[type] = value;
+    for (const [container, selected] of [[pickerHours, pickerState.hour], [pickerMinutes, pickerState.minute]]) {
+      container.querySelectorAll(".time-picker-option").forEach((option) => {
+        const isSelected = option.dataset.value === selected;
+        if (!isSelected) option.removeAttribute("data-auto-focus");
+        option.textContent = option.dataset.value;
+        option.setAttribute("aria-selected", String(isSelected));
+        option.tabIndex = isSelected ? 0 : -1;
+        option.classList.toggle("is-selected", isSelected);
+      });
+    }
+    if (scroll) requestAnimationFrame(() => (type === "hour" ? pickerHours : pickerMinutes).querySelector(`[data-value="${value}"]`)?.scrollIntoView({ block: "center" }));
+  }
+
+  function syncPickerFromScroll(type) {
+    const container = type === "hour" ? pickerHours : pickerMinutes;
+    const center = container.getBoundingClientRect().top + container.clientHeight / 2;
+    const options = [...container.querySelectorAll(".time-picker-option")];
+    const nearest = options.reduce((best, option) => Math.abs(option.getBoundingClientRect().top + option.offsetHeight / 2 - center) < Math.abs(best.getBoundingClientRect().top + best.offsetHeight / 2 - center) ? option : best);
+    if (nearest && pickerState[type] !== nearest.dataset.value) setPickerSelection(type, nearest.dataset.value, false);
+  }
+
+  function openTimePicker(target) {
+    const input = target === "start" ? startInput : endInput;
+    const trigger = target === "start" ? startTimeButton : endTimeButton;
+    const { hour, minute } = timeParts(input.value);
+    pickerState.target = target;
+    pickerState.trigger = trigger;
+    pickerState.hour = hour;
+    pickerState.minute = pickerMinutesList.includes(minute) ? minute : roundDownToTenMinutes(input.value).slice(3);
+    timePickerTitle.textContent = target === "start" ? "開始時刻を選択" : "終了時刻を選択";
+    trigger.setAttribute("aria-expanded", "true");
+    setPickerSelection("hour", pickerState.hour, false);
+    setPickerSelection("minute", pickerState.minute, false);
+    timePickerDialog.showModal();
+    requestAnimationFrame(() => {
+      const hourOption = pickerHours.querySelector(`[data-value="${pickerState.hour}"]`);
+      const minuteOption = pickerMinutes.querySelector(`[data-value="${pickerState.minute}"]`);
+      hourOption?.scrollIntoView({ block: "center" }); minuteOption?.scrollIntoView({ block: "center" });
+      hourOption?.toggleAttribute("data-auto-focus", !keyboardNavigation);
+      hourOption?.focus({ preventScroll: true });
+    });
+  }
+
+  function closeTimePicker() {
+    pickerState.trigger?.setAttribute("aria-expanded", "false");
+    pickerState.trigger?.focus({ preventScroll: true });
+    pickerState.target = null;
+  }
+
+  function confirmTimePicker() {
+    const value = `${pickerState.hour}:${pickerState.minute}`;
+    if (pickerState.target === "start") {
+      setTimeValue(startInput, startTimeButton, value);
+      setEndOneHourAfterStart();
+    } else {
+      setTimeValue(endInput, endTimeButton, value);
+      syncEndDate();
+    }
+    timePickerDialog.close();
+  }
+
+  renderPickerOptions();
+  startTimeButton.addEventListener("click", () => openTimePicker("start"));
+  endTimeButton.addEventListener("click", () => openTimePicker("end"));
+  document.getElementById("time-picker-confirm").addEventListener("click", confirmTimePicker);
+  document.getElementById("time-picker-cancel").addEventListener("click", () => timePickerDialog.close());
+  timePickerDialog.addEventListener("click", (event) => { if (event.target === timePickerDialog) timePickerDialog.close(); });
+  timePickerDialog.addEventListener("close", closeTimePicker);
+  for (const [container, type] of [[pickerHours, "hour"], [pickerMinutes, "minute"]]) {
+    let frame = null;
+    container.addEventListener("scroll", () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(() => syncPickerFromScroll(type)); });
+    container.addEventListener("keydown", (event) => {
+      if (!['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+      event.preventDefault();
+      const values = type === "hour" ? Array.from({ length: 24 }, (_, index) => String(index).padStart(2, "0")) : pickerMinutesList;
+      const next = (values.indexOf(pickerState[type]) + (event.key === "ArrowUp" ? -1 : 1) + values.length) % values.length;
+      setPickerSelection(type, values[next], true);
+      container.querySelector(`[data-value="${values[next]}"]`)?.focus({ preventScroll: true });
+    });
   }
 
   // 固定の線画のみ。ユーザーの入力値をHTMLとして埋め込みません。
@@ -118,8 +235,9 @@
         const current = currentJapanTime();
         const roundedTime = roundDownToTenMinutes(current.time);
         dateInput.value = current.date;
-        startInput.value = endInput.value = roundedTime;
+        setTimeValue(startInput, startTimeButton, roundedTime);
         endDateInput.value = current.date;
+        setEndOneHourAfterStart();
         pastInitialized = true;
       }
       updateStartPreview();
@@ -181,13 +299,11 @@
     catch { /* 不完全な日付入力は、保存時に検証する。 */ }
   }
   dateInput.addEventListener("input", syncEndDate);
-  startInput.addEventListener("input", setEndOneHourAfterStart);
-  endInput.addEventListener("input", syncEndDate);
   endDateInput.addEventListener("input", () => { endDateManual = true; });
   finishEdit.addEventListener("change", () => {
     endFields.hidden = endFields.disabled = !finishEdit.checked;
     if (finishEdit.checked && !endDateInput.value) {
-      const current = currentJapanTime(); endDateInput.value = current.date; endInput.value = current.time;
+      const current = currentJapanTime(); endDateInput.value = current.date; setTimeValue(endInput, endTimeButton, current.time);
     }
   });
 
@@ -243,8 +359,8 @@
     form.hidden = false; nowFields.hidden = nowFields.disabled = true; pastFields.hidden = pastFields.disabled = false;
     heading.textContent = "記録を編集"; saveButton.textContent = "変更を保存";
     cancelButton.hidden = deleteButton.hidden = false;
-    dateInput.value = record.date; startInput.value = record.startTime;
-    endDateInput.value = record.endDate || ""; endInput.value = record.endTime || "";
+    dateInput.value = record.date; setTimeValue(startInput, startTimeButton, record.startTime);
+    endDateInput.value = record.endDate || ""; setTimeValue(endInput, endTimeButton, record.endTime || "");
     finishOption.hidden = record.status !== "active";
     endFields.hidden = endFields.disabled = record.status === "active";
     form.elements.activity.value = record.activity; form.elements.condition.value = record.condition;
